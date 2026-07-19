@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     anthropic_model: str = "claude-sonnet-4-20250514"
     local_llm_base_url: str = "http://localhost:11434/v1"
     local_llm_model: str = "llama3.2"
+    embedding_default_provider: str = "local"
+    openai_embedding_model: str = "text-embedding-3-small"
+    gemini_embedding_model: str = "gemini-embedding-001"
+    local_embedding_dimensions: int = 64
 
     @property
     def origins(self) -> list[str]:

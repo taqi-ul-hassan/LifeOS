@@ -1,11 +1,12 @@
 from authlib.integrations.starlette_client import OAuth
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 from .config import get_settings
 from .db import get_session
+from .dependencies import current_user
+from .memory.api import router as memory_router
 from .models import OAuthAccount, User
 from .orchestrator import Orchestrator
 from .repositories import GoalRepository, TaskRepository, UserRepository
@@ -23,7 +24,7 @@ from .schemas import (
     TokenResponse,
     UserRead,
 )
-from .security import create_access_token, decode_access_token, encrypt_credential
+from .security import create_access_token, encrypt_credential
 from .services import AuthService, GoalService, TaskService
 
 orchestrator = Orchestrator(get_settings())
@@ -39,6 +40,7 @@ app.add_middleware(
     https_only=False,
     same_site="lax",
 )
+app.include_router(memory_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_settings().origins,
@@ -55,19 +57,6 @@ if get_settings().oauth_google_client_id and get_settings().oauth_google_client_
         server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
         client_kwargs={"scope": "openid email profile"},
     )
-bearer = HTTPBearer()
-
-
-def current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer),
-    session: Session = Depends(get_session),
-) -> User:
-    user = session.get(User, decode_access_token(credentials.credentials))
-    if not user or not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive user"
-        )
-    return user
 
 
 @app.get("/health", tags=["system"])
@@ -195,6 +184,10 @@ def daily_brief(
 
 
 @app.post("/v1/ai/respond", response_model=AIResponse, tags=["ai"])
-async def ai_respond(data: AIRequest, user: User = Depends(current_user)):
+async def ai_respond(
+    data: AIRequest,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
     """Route an explicit request to one specialist agent; no memory or tools are used."""
-    return await orchestrator.respond(data)
+    return await orchestrator.respond(data, user.id, session)
