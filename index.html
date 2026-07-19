@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="LifeOS — a human-centered daily operating system." />
+    <title>LifeOS — Today</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="LifeOS navigation">
+        <a class="brand" href="#today"><span class="brand-mark">L</span><span>life<span>OS</span></span></a>
+        <nav>
+          <a class="nav-item active" href="#today"><span>◈</span> Today</a>
+          <a class="nav-item" href="#goals"><span>◎</span> Goals</a>
+          <a class="nav-item" href="#projects"><span>▣</span> Projects</a>
+          <a class="nav-item" href="#memory"><span>⌘</span> Memory</a>
+          <a class="nav-item" href="#insights"><span>✦</span> Insights</a>
+        </nav>
+        <div class="sidebar-bottom"><div class="privacy"><span class="dot"></span> Private by default</div><button class="avatar" aria-label="Account menu">AK</button></div>
+      </aside>
+
+      <main id="today">
+        <header class="topbar">
+          <div><p class="eyebrow">SUNDAY, JULY 19</p><h1>Good morning, Ayesha.</h1></div>
+          <div class="top-actions"><button class="icon-button" aria-label="Notifications">◌<span class="notification"></span></button><button class="mode-toggle" id="themeToggle">◐</button></div>
+        </header>
+
+        <section class="command-wrap" aria-label="Natural language command">
+          <form id="commandForm"><span class="command-sigil">✦</span><input id="commandInput" autocomplete="off" placeholder="Ask LifeOS anything, or add an intention for today…" aria-label="Ask LifeOS" /><kbd>⌘ K</kbd></form>
+          <p id="commandFeedback" aria-live="polite">Try: “add renew passport”, “check in”, or “focus”.</p>
+        </section>
+
+        <section class="hero-grid">
+          <article class="briefing card"><div class="card-label">YOUR DAILY BRIEF</div><h2>Make room for the work that moves your life forward.</h2><p>You have a clear 2h 15m window before lunch. Your energy is steady, so start with the prototype—not your inbox.</p><div class="briefing-footer"><button class="primary" id="focusButton">Begin focus session <span>→</span></button><span id="focusStat">42 focused min this week</span></div></article>
+          <article class="weather card"><div class="weather-icon">☀</div><div><div class="card-label">KARACHI · 31°C</div><h3>Warm and clear</h3><p>Good evening weather for a walk.</p></div><div class="weather-line" aria-hidden="true"></div></article>
+        </section>
+
+        <section class="dashboard-grid">
+          <article class="today-plan card"><div class="section-heading"><div><div class="card-label">TODAY’S RHYTHM</div><h2>Three meaningful things</h2></div><button class="text-button">View calendar →</button></div><div id="taskList" class="task-list"></div><button class="add-link" id="addTaskButton">+ Capture a new intention</button></article>
+          <article class="systems card"><div class="card-label">LIFE SYSTEMS</div><h2>Signals worth noticing</h2><div id="habitList" class="habit-list"></div><button class="checkin" id="checkinButton">Check in with yourself <span>→</span></button></article>
+          <article class="insights card"><div class="section-heading"><div><div class="card-label">AI OBSERVATIONS</div><h2>Connected context</h2></div><span class="live"><i></i> Live</span></div><div id="insightList" class="insight-list"></div><button class="text-button">Open all insights →</button></article>
+        </section>
+
+        <section class="agent-strip" aria-label="LifeOS specialist agents"><div><p class="eyebrow">YOUR AI COUNCIL</p><h2>Specialists collaborate in the background.</h2></div><div class="agents"><span>Strategy</span><span>Health</span><span>Learning</span><span>Finance</span><span>+6</span></div><button class="text-button">See agent activity →</button></section>
+      </main>
+    </div>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
