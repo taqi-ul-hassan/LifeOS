@@ -8,6 +8,7 @@ from .db import get_session
 from .dependencies import current_user
 from .memory.api import router as memory_router
 from .life_engine.api import router as life_engine_router
+from .automation.api import router as automation_router
 from .models import OAuthAccount, User
 from .orchestrator import Orchestrator
 from .repositories import GoalRepository, TaskRepository, UserRepository
@@ -43,6 +44,7 @@ app.add_middleware(
 )
 app.include_router(memory_router)
 app.include_router(life_engine_router)
+app.include_router(automation_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_settings().origins,

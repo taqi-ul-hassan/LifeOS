@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from ..config import get_settings
 from ..db import get_session
 from ..dependencies import current_user
+from ..automation.event_bus import event_bus
+from ..automation.events import Event
 from ..memory.service import MemoryService
 from ..models import User
 from .context import ContextEngine
@@ -38,18 +40,22 @@ async def context(
 async def daily(
     user: User = Depends(current_user), session: Session = Depends(get_session)
 ):
-    return PlanningEngine(session).plan(
+    plan = PlanningEngine(session).plan(
         user.id, await context_for(user, session), "daily"
     )
+    event_bus.publish(Event("LifePlanCreated", user.id, {"horizon": "daily"}))
+    return plan
 
 
 @router.post("/v1/planning/weekly", response_model=PlanResponse)
 async def weekly(
     user: User = Depends(current_user), session: Session = Depends(get_session)
 ):
-    return PlanningEngine(session).plan(
+    plan = PlanningEngine(session).plan(
         user.id, await context_for(user, session), "weekly"
     )
+    event_bus.publish(Event("LifePlanCreated", user.id, {"horizon": "weekly"}))
+    return plan
 
 
 @router.post("/v1/planning/review", response_model=ReviewResponse)
@@ -58,7 +64,9 @@ def review(
     user: User = Depends(current_user),
     session: Session = Depends(get_session),
 ):
-    return ReflectionEngine(session).review(user.id, data.period)
+    result = ReflectionEngine(session).review(user.id, data.period)
+    event_bus.publish(Event("ReflectionGenerated", user.id, {"period": data.period}))
+    return result
 
 
 @router.post("/v1/planning/recommend", response_model=RecommendationsResponse)
@@ -69,6 +77,12 @@ async def recommend(
     suggestions = DecisionEngine().recommend(context) + RecommendationEngine(
         session
     ).generate(user.id)
-    return RecommendationsResponse(
+    result = RecommendationsResponse(
         recommendations=sorted(suggestions, key=lambda item: item.priority)
     )
+    event_bus.publish(
+        Event(
+            "RecommendationGenerated", user.id, {"count": len(result.recommendations)}
+        )
+    )
+    return result
