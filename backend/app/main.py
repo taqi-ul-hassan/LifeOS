@@ -9,6 +9,9 @@ from .dependencies import current_user
 from .memory.api import router as memory_router
 from .life_engine.api import router as life_engine_router
 from .automation.api import router as automation_router
+from .integrations.api import router as integrations_router
+from .integrations.providers import Connector
+from .integrations.registry import registry
 from .models import OAuthAccount, User
 from .orchestrator import Orchestrator
 from .repositories import GoalRepository, TaskRepository, UserRepository
@@ -45,6 +48,23 @@ app.add_middleware(
 app.include_router(memory_router)
 app.include_router(life_engine_router)
 app.include_router(automation_router)
+app.include_router(integrations_router)
+for provider_name in (
+    "google",
+    "calendar",
+    "gmail",
+    "drive",
+    "github",
+    "slack",
+    "discord",
+    "notion",
+    "obsidian",
+    "spotify",
+    "weather",
+    "news",
+    "rest",
+):
+    registry.register(Connector(provider_name))
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_settings().origins,

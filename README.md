@@ -101,6 +101,10 @@ flowchart LR
 
 Automation API: `POST/GET /v1/automation`, `GET/PATCH/DELETE /v1/automation/{id}`, `POST /v1/automation/test`, `POST /v1/automation/run`, `POST /v1/automation/parse`, `GET /v1/automation/history`, `/logs`, and `/metrics`.
 
+## Phase 7: External Integrations Platform
+
+The integrations layer provides a provider registry, common connector contract, encrypted credential storage, OAuth/webhook primitives, connection audit trail, manual/incremental sync ledger, rate-limit hook, and user-scoped APIs. Connectors are currently internal transport adapters only—no external business logic or service credentials are embedded. See [Integration Architecture](INTEGRATION_ARCHITECTURE.md).
+
 ```mermaid
 flowchart LR
   U[User request] --> R[Hybrid retrieval]
