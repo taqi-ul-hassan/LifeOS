@@ -49,10 +49,83 @@ OAuth account tokens are encrypted before storage using a Fernet key derived fro
 
 ```powershell
 cd backend
+alembic upgrade head
 python -m uvicorn app.main:app --reload
 ```
 
-Or use `docker compose up --build` after setting `JWT_SECRET` in `backend/.env`. Run `alembic upgrade head` in a deployed environment. The local development lifespan creates the same schema for a clean start.
+Or use `docker compose up --build` after setting `JWT_SECRET` in `backend/.env`. The container runs `alembic upgrade head` before Uvicorn starts; the application never mutates its schema at runtime.
+
+## Verification
+
+Run `pytest -q` from `backend/` to verify health, OpenAPI generation, protected-route rejection, registration, duplicate handling, credential rejection, JWT issuance, task create/list/update, daily brief, goal create/list, and the disabled-by-default OAuth guard.
+
+Google OAuth uses the authorization-code flow. To enable the live flow, set `OAUTH_GOOGLE_CLIENT_ID`, `OAUTH_GOOGLE_CLIENT_SECRET`, and `OAUTH_REDIRECT_BASE_URL` with a redirect URI registered in Google Cloud. Until those values exist, the API deliberately returns `503` for the OAuth routes rather than initiating an incomplete authorization flow.
+
+## Phase 3: AI Orchestrator
+
+`POST /v1/ai/respond` is a JWT-protected, stateless endpoint that routes a prompt to one specialist: CEO, Planner, Coding, Learning, Health, Finance, or Research. Set `provider` to `openai`, `gemini`, `anthropic`, or `local`; otherwise `AI_DEFAULT_PROVIDER` is used. Provider configuration is environment-only:
+
+- OpenAI: `OPENAI_API_KEY`, `OPENAI_MODEL`
+- Gemini: `GEMINI_API_KEY`, `GEMINI_MODEL`
+- Anthropic: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`
+- Local OpenAI-compatible server: `LOCAL_LLM_BASE_URL`, `LOCAL_LLM_MODEL`
+
+The OpenAI adapter uses the Responses API with `store: false`. Phase 3 deliberately introduced no tool calls, autonomous action, or automation execution.
+
+## Phase 4: Persistent Memory and RAG
+
+The `backend/app/memory/` module owns durable, user-scoped memories, embeddings, tags, cross-memory references, typed memory records, and the personal knowledge graph. Memory lifecycle: capture → importance scoring → provider embedding → tagged storage → hybrid retrieval → context assembly → agent response → consolidation.
+
+Retrieval combines cosine similarity, lexical overlap, recency, and importance, and returns stable `[memory:<id>]` citations. `POST /v1/ai/respond` retrieves relevant context before provider invocation. No workflow automation or scheduling is introduced.
+
+Memory API: `POST /v1/memory`, `GET /v1/memory`, `GET/PATCH/DELETE /v1/memory/{id}`, `POST /v1/memory/search`, `POST /v1/memory/retrieve`, `POST /v1/memory/consolidate`, `POST /v1/memory/summarize`, and `GET /v1/memory/stats`.
+
+## Phase 5: Life Engine
+
+The Life Engine synthesizes open tasks, projects, active goals, calendar capacity, health signals, recent activity, and RAG memory into `GET /v1/context`. It produces explainable daily/weekly plans, focus sessions, reviews, and proactive recommendations through `POST /v1/planning/daily`, `/weekly`, `/review`, and `/recommend`. Replanning is achieved by requesting a new plan after any context change; no external integrations or autonomous scheduling are involved.
+
+## Phase 6: Workflow and Automation Engine
+
+The internal automation runtime is user-scoped, event-driven, and auditable. A rule stores a trigger, an optional composable condition tree, and an ordered action definition. Runs use an idempotency key, persist execution history/logs, and expose metrics. The current action set is intentionally internal: task creation, notification creation, activity logging, and safely accepted internal handoffs. No third-party service is called.
+
+```mermaid
+flowchart LR
+  L[Life Engine] -->|event| B[Internal event bus]
+  B --> T[Trigger matcher]
+  T --> C[Condition evaluator]
+  C --> E[Idempotent executor]
+  E --> A[Internal actions]
+  E --> H[History + logs + audit]
+  E --> M[Metrics + retry queue]
+```
+
+Automation API: `POST/GET /v1/automation`, `GET/PATCH/DELETE /v1/automation/{id}`, `POST /v1/automation/test`, `POST /v1/automation/run`, `POST /v1/automation/parse`, `GET /v1/automation/history`, `/logs`, and `/metrics`.
+
+```mermaid
+flowchart LR
+  U[User request] --> R[Hybrid retrieval]
+  R --> M[(Memories + tags)]
+  R --> V[(pgvector embeddings)]
+  R --> G[Knowledge graph links]
+  R --> C[Context builder]
+  C --> O[AI orchestrator]
+  O --> P[Provider adapter]
+  P --> A[Agent response]
+```
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant API as FastAPI
+  participant MEM as Memory service
+  participant AI as Orchestrator
+  U->>API: POST /v1/ai/respond
+  API->>MEM: embed query + retrieve top-k
+  MEM-->>AI: cited context window
+  AI->>AI: route specialist + assemble prompt
+  AI-->>API: provider response
+  API-->>U: response
+```
 
 ## Initial domain model
 
