@@ -11,6 +11,7 @@ from .life_engine.api import router as life_engine_router
 from .automation.api import router as automation_router
 from .integrations.api import router as integrations_router
 from .intelligence.api import router as intelligence_router
+from .knowledge.api import router as knowledge_router
 from .integrations.providers import Connector
 from .integrations.registry import registry
 from .models import OAuthAccount, User
@@ -51,6 +52,7 @@ app.include_router(life_engine_router)
 app.include_router(automation_router)
 app.include_router(integrations_router)
 app.include_router(intelligence_router)
+app.include_router(knowledge_router)
 for provider_name in (
     "google",
     "calendar",
