@@ -12,6 +12,7 @@ from .automation.api import router as automation_router
 from .integrations.api import router as integrations_router
 from .intelligence.api import router as intelligence_router
 from .knowledge.api import router as knowledge_router
+from .multimodal.api import router as multimodal_router
 from .integrations.providers import Connector
 from .integrations.registry import registry
 from .models import OAuthAccount, User
@@ -53,6 +54,7 @@ app.include_router(automation_router)
 app.include_router(integrations_router)
 app.include_router(intelligence_router)
 app.include_router(knowledge_router)
+app.include_router(multimodal_router)
 for provider_name in (
     "google",
     "calendar",
