@@ -48,7 +48,7 @@ async def search(
     user: User = Depends(current_user),
     memory: MemoryService = Depends(service),
 ):
-    return await memory.retrieve(user.id, data)
+    return await _retrieve_memories(user, data, memory)
 
 
 @router.post("/retrieve", response_model=RetrievalResponse)
@@ -57,6 +57,13 @@ async def retrieve(
     user: User = Depends(current_user),
     memory: MemoryService = Depends(service),
 ):
+    return await _retrieve_memories(user, data, memory)
+
+
+async def _retrieve_memories(
+    user: User, data: MemorySearch, memory: MemoryService
+) -> RetrievalResponse:
+    """Shared implementation for the legacy search alias and retrieve endpoint."""
     return await memory.retrieve(user.id, data)
 
 

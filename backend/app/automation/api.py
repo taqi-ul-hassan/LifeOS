@@ -37,6 +37,16 @@ def execution_read(execution) -> dict:
     }
 
 
+def _run_rule(
+    session: Session, user_id: str, rule_id: str, data: AutomationRun
+) -> dict:
+    return execution_read(
+        AutomationService(session).run(
+            user_id, rule_id, data.payload, data.idempotency_key
+        )
+    )
+
+
 @router.post("", response_model=AutomationRead, status_code=201)
 def create(
     data: AutomationCreate,
@@ -94,11 +104,7 @@ def test_root(
         from fastapi import HTTPException
 
         raise HTTPException(422, "rule_id is required")
-    return execution_read(
-        AutomationService(session).run(
-            user.id, data.rule_id, data.payload, data.idempotency_key
-        )
-    )
+    return _run_rule(session, user.id, data.rule_id, data)
 
 
 @router.post("/run")
@@ -107,7 +113,11 @@ def run_root(
     user: User = Depends(current_user),
     session: Session = Depends(get_session),
 ):
-    return test_root(data, user, session)
+    if not data.rule_id:
+        from fastapi import HTTPException
+
+        raise HTTPException(422, "rule_id is required")
+    return _run_rule(session, user.id, data.rule_id, data)
 
 
 @router.post("/{rule_id}/test")
@@ -117,11 +127,7 @@ def test(
     user: User = Depends(current_user),
     session: Session = Depends(get_session),
 ):
-    return execution_read(
-        AutomationService(session).run(
-            user.id, rule_id, data.payload, data.idempotency_key
-        )
-    )
+    return _run_rule(session, user.id, rule_id, data)
 
 
 @router.post("/{rule_id}/run")
@@ -131,11 +137,7 @@ def run(
     user: User = Depends(current_user),
     session: Session = Depends(get_session),
 ):
-    return execution_read(
-        AutomationService(session).run(
-            user.id, rule_id, data.payload, data.idempotency_key
-        )
-    )
+    return _run_rule(session, user.id, rule_id, data)
 
 
 @router.get("/{rule_id}", response_model=AutomationRead)

@@ -8,6 +8,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
+    Index,
     JSON,
     String,
     Text,
@@ -72,6 +73,7 @@ class Project(Timestamped):
 
 class Goal(Timestamped):
     __tablename__ = "goals"
+    __table_args__ = (Index("ix_goals_user_status_target", "user_id", "status", "target_date"),)
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
     project_id: Mapped[str | None] = mapped_column(ForeignKey("projects.id"))
@@ -85,6 +87,7 @@ class Goal(Timestamped):
 
 class Task(Timestamped):
     __tablename__ = "tasks"
+    __table_args__ = (Index("ix_tasks_user_status_due", "user_id", "status", "due_at"),)
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
     project_id: Mapped[str | None] = mapped_column(ForeignKey("projects.id"))
@@ -110,6 +113,7 @@ class Habit(Timestamped):
 
 class CalendarEvent(Timestamped):
     __tablename__ = "calendar_events"
+    __table_args__ = (Index("ix_calendar_events_user_starts", "user_id", "starts_at"),)
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
     title: Mapped[str] = mapped_column(String(300))
@@ -194,6 +198,7 @@ class Notification(Timestamped):
 
 class HealthMetric(Timestamped):
     __tablename__ = "health_metrics"
+    __table_args__ = (Index("ix_health_metrics_user_type_measured", "user_id", "metric_type", "measured_at"),)
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
     metric_type: Mapped[str] = mapped_column(String(60))
@@ -215,6 +220,7 @@ class LearningSession(Timestamped):
 
 class FinancialRecord(Timestamped):
     __tablename__ = "financial_records"
+    __table_args__ = (Index("ix_financial_records_user_occurred", "user_id", "occurred_on"),)
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
     record_type: Mapped[str] = mapped_column(String(30))
