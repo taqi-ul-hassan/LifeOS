@@ -10,6 +10,7 @@ from .memory.api import router as memory_router
 from .life_engine.api import router as life_engine_router
 from .automation.api import router as automation_router
 from .integrations.api import router as integrations_router
+from .intelligence.api import router as intelligence_router
 from .integrations.providers import Connector
 from .integrations.registry import registry
 from .models import OAuthAccount, User
@@ -49,6 +50,7 @@ app.include_router(memory_router)
 app.include_router(life_engine_router)
 app.include_router(automation_router)
 app.include_router(integrations_router)
+app.include_router(intelligence_router)
 for provider_name in (
     "google",
     "calendar",
