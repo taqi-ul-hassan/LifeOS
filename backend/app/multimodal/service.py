@@ -1,5 +1,3 @@
-
-
 class Multimodal:
     def validate(self, data):
         content = data.get("content", "")
